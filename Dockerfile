@@ -1,45 +1,38 @@
 # ==============================================================================
-# Stage 1: Build stage
+# Etapa 1: Builder (Compilación con Maven y JDK 25)
 # ==============================================================================
-FROM eclipse-temurin:25-jdk AS builder
+FROM maven:3.9-eclipse-temurin-25 AS builder
 WORKDIR /app
 
-# Copy Maven wrapper configuration and project descriptor
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
+# Copiar descriptor de dependencias para aprovechar la caché de capas de Docker
+COPY pom.xml ./
+RUN mvn dependency:go-offline -B
 
-# Normalize line endings for Linux execution and grant execution permissions
-RUN sed -i 's/\r$//' ./mvnw && chmod +x ./mvnw
-
-# Pre-fetch project dependencies for layer caching
-RUN ./mvnw dependency:go-offline -B
-
-# Copy application source code and compile/package the JAR
+# Copiar código fuente y compilar el microservicio
 COPY src ./src
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # ==============================================================================
-# Stage 2: Runtime stage
+# Etapa 2: Runner (Ejecución ligera con JRE 25)
 # ==============================================================================
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:25-jre-noble AS runner
 WORKDIR /app
 
-# Create a non-root group and user for security compliance
+# Crear usuario y grupo no privilegiado por seguridad
 RUN groupadd -r appgroup && useradd -r -g appgroup -d /app -s /sbin/nologin appuser
 
-# Copy the built executable JAR from builder stage
-COPY --from=builder /app/target/config-server-*.jar app.jar
+# Copiar el JAR generado desde la etapa de compilación
+COPY --from=builder /app/target/configserver-*.jar app.jar
 
-# Set ownership to unprivileged user
+# Asignar permisos y cambiar a usuario no root
 RUN chown -R appuser:appgroup /app
-
-# Switch to non-root user
 USER appuser
 
-# Spring Cloud Config Server runs on port 8085
+# Exponer el puerto del Config Server
 EXPOSE 8085
 
-# Java options with container memory awareness and fast entropy source
+# Parámetros optimizados para JVM en contenedores
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 
+# Entrypoint limpio
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]

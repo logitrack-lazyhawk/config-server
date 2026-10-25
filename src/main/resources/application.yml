@@ -1,16 +1,23 @@
+# ==============================================================================
+# LOGITRACK - CONFIG SERVER
+# Microservicio de Configuración Centralizada (Sprint 2 - DAAS)
+# ==============================================================================
+
 server:
   port: 8085
 
 spring:
   application:
-    name: config-server
+    name: configserver
+  profiles:
+    active: git
   cloud:
     config:
       server:
         git:
-          uri: ${CONFIG_REPO_URI:https://github.com/logitrack-lazyhawk/logitrack-config.git}
-          default-label: ${CONFIG_REPO_BRANCH:main}
-          clone-on-start: ${CONFIG_REPO_CLONE_ON_START:false}
+          uri: ${GIT_CONFIG_URI:https://github.com/logitrack-lazyhawk/logitrack-config.git}
+          default-label: main
+          clone-on-start: true
           force-pull: true
           timeout: 5
 
@@ -18,7 +25,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info
   endpoint:
     health:
       show-details: always

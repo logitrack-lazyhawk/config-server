@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.logitrack</groupId>
-    <artifactId>config-server</artifactId>
+    <artifactId>configserver</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>config-server</name>
+    <name>configserver</name>
     <description>Config Server microservice for LogiTrack</description>
 
     <properties>
@@ -57,6 +57,11 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <image>
+                        <name>tu_usuario_dockerhub/${project.artifactId}:latest</name>
+                    </image>
+                </configuration>
             </plugin>
         </plugins>
     </build>
