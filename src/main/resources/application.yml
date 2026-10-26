@@ -15,7 +15,7 @@ spring:
     config:
       server:
         git:
-          uri: ${GIT_CONFIG_URI:https://github.com/logitrack-lazyhawk/logitrack-config.git}
+          uri: ${GIT_CONFIG_URI:https://github.com/logitrack-lazyhawk/configserver-ms.git}
           default-label: main
           clone-on-start: true
           force-pull: true
